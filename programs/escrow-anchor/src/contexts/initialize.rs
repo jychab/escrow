@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{TokenAccount, Mint, Transfer};
 
-use crate::states::{EscrowAccount, ESCROW_ACCOUNT_SEED, ESCROW_ACCOUNT_LEN};
+use crate::states::{EscrowAccount, ESCROW_ACCOUNT_LEN};
 
 
 #[derive(Accounts)]
@@ -11,7 +11,7 @@ pub struct Initialize<'info> {
     pub mint: Account<'info, Mint>,
     #[account(
         init,
-        seeds = [b"vault-account".as_ref()],
+        seeds = [offer.key().as_ref(), b"vault-account".as_ref()],
         bump,
         payer = initializer,
         token::mint = mint,
@@ -19,7 +19,7 @@ pub struct Initialize<'info> {
     )]
     pub vault_account: Account<'info, TokenAccount>,
     #[account(
-        seeds = [b"vault-authority".as_ref()],
+        seeds = [offer.key().as_ref(), b"vault-authority".as_ref()],
         bump,
     )]
     /// CHECK: This is not dangerous because we have checked account using seeds
@@ -27,9 +27,10 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub initializer_release_token_account: Account<'info, TokenAccount>,
     pub initializer_receive_token_account: Account<'info, TokenAccount>,
+    pub offer: Account<'info, TokenAccount>,
     #[account(
         init,
-        seeds = [ESCROW_ACCOUNT_SEED],
+        seeds = [offer.key().as_ref(), b"escrow-account".as_ref()],
         bump,
         payer = initializer,
         space = ESCROW_ACCOUNT_LEN
