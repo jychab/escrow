@@ -1,17 +1,18 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*};
 use anchor_spl::token::{TokenAccount, Mint, Transfer};
 
 use crate::states::{EscrowAccount, ESCROW_ACCOUNT_LEN};
 
 
 #[derive(Accounts)]
+#[instruction(offer_id:String, amount_of_release_token: u64, amount_of_receieve_token: u64)]
 pub struct Initialize<'info> {
     #[account(mut)]
     pub initializer: Signer<'info>,
     pub mint: Account<'info, Mint>,
     #[account(
         init,
-        seeds = [offer.key().as_ref(), b"vault-account".as_ref()],
+        seeds = [initializer.key.as_ref(), b"vault-account".as_ref(), offer_id.as_bytes().as_ref()],
         bump,
         payer = initializer,
         token::mint = mint,
@@ -19,7 +20,7 @@ pub struct Initialize<'info> {
     )]
     pub vault_account: Account<'info, TokenAccount>,
     #[account(
-        seeds = [offer.key().as_ref(), b"vault-authority".as_ref()],
+        seeds = [initializer.key.as_ref(), b"vault-authority".as_ref(), offer_id.as_bytes().as_ref()],
         bump,
     )]
     /// CHECK: This is not dangerous because we have checked account using seeds
@@ -27,10 +28,9 @@ pub struct Initialize<'info> {
     #[account(mut)]
     pub initializer_release_token_account: Account<'info, TokenAccount>,
     pub initializer_receive_token_account: Account<'info, TokenAccount>,
-    pub offer: Account<'info, TokenAccount>,
     #[account(
         init,
-        seeds = [offer.key().as_ref(), b"escrow-account".as_ref()],
+        seeds = [initializer.key.as_ref(), b"escrow-account".as_ref(), offer_id.as_bytes().as_ref()],
         bump,
         payer = initializer,
         space = ESCROW_ACCOUNT_LEN

@@ -4,12 +4,11 @@ use anchor_spl::token;
 use crate::{Exchange};
 
 pub fn handler(ctx: Context<Exchange>) -> Result<()> {
-    let offer_key = ctx.accounts.escrow_account.offer.key();
-    let vault_authority_seed = [offer_key.as_ref(), b"vault-authority".as_ref()];
-    let (_vault_authority, vault_authority_bump) =
-        Pubkey::find_program_address(&vault_authority_seed, ctx.program_id);
-    let authority_seeds = [&vault_authority_seed[..], &[&[vault_authority_bump]]];
-
+    let bump = ctx.accounts.escrow_account.vault_authority_bump;
+    let seeds = vec![bump];
+    let seeds = vec![ctx.accounts.initializer.key.as_ref(), b"vault-authority".as_ref(), ctx.accounts.escrow_account.offer_id.as_bytes().as_ref(), seeds.as_slice()];
+    let seeds = vec![seeds.as_slice()];
+    let seeds = seeds.as_slice();
     token::transfer(
         ctx.accounts.into_transfer_to_initializer_context(),
         ctx.accounts.escrow_account.amount_of_receive_token,
@@ -18,14 +17,14 @@ pub fn handler(ctx: Context<Exchange>) -> Result<()> {
     token::transfer(
         ctx.accounts
             .into_transfer_to_taker_context()
-            .with_signer(&authority_seeds[..]),
+            .with_signer(seeds),
         ctx.accounts.escrow_account.amount_of_release_token,
     )?;
 
     token::close_account(
         ctx.accounts
             .into_close_context()
-            .with_signer(&authority_seeds[..]),
+            .with_signer(seeds),
     )?;
 
     Ok(())
