@@ -5,5 +5,5 @@ Improvements:
 2. Allow user to determine amount of token to trade and receive
 
 
-Forked off from metaplex escrow github https://github.com/MetacampDAO/escrow-anchor-v1
+Forked off from metacamp escrow github https://github.com/MetacampDAO/escrow-anchor-v1
 
